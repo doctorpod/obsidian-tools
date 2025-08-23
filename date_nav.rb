@@ -18,21 +18,22 @@ class DateNav
     ].join(' | ').strip
   end
 
+  MONTH_SEARCH_RADIUS = 3 # Was 10
+  YEAR_SEARCH_RADIUS = 10 # Was 90
+
   def prev_hits
     [
       [:prev, prev_date],
-      [:week, nearest(reference_date.prev_day(7), 3, prev_available_dates)],
-      [:month, nearest(reference_date.prev_month, 10, prev_available_dates)],
-      [:year, nearest(reference_date.prev_year, 90, prev_available_dates)]
+      [:month, nearest(reference_date.prev_month, MONTH_SEARCH_RADIUS, prev_available_dates)],
+      [:year, nearest(reference_date.prev_year, YEAR_SEARCH_RADIUS, prev_available_dates)]
     ].reject { |segment| segment.last.nil? } .reverse
   end
 
   def next_hits
     [
       [:next, next_date],
-      [:week, nearest(reference_date.next_day(7), 3, next_available_dates)],
-      [:month, nearest(reference_date.next_month, 10, next_available_dates)],
-      [:year, nearest(reference_date.next_year, 90, next_available_dates)]
+      [:month, nearest(reference_date.next_month, MONTH_SEARCH_RADIUS, next_available_dates)],
+      [:year, nearest(reference_date.next_year, YEAR_SEARCH_RADIUS, next_available_dates)]
     ].reject { |segment| segment.last.nil? }
   end
 

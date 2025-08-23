@@ -23,7 +23,6 @@ RSpec.describe DateNav do
           [
             [:year,  Date.new(1961,  1,  3)],
             [:month, Date.new(1961, 12,  3)],
-            [:week,  Date.new(1961, 12, 27)],
             [:prev,  Date.new(1962,  1,  1)]
           ]
         )
