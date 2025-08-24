@@ -1,6 +1,10 @@
-module Obsidian
-  ALL_GLOB = '**/*.md'.freeze
+# frozen_string_literal: true
 
+# --
+module Obsidian
+  ALL_GLOB = '**/*.md'
+
+  # Represents Obsidian vault
   class Vault
     attr_reader :path
 

@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+require 'byebug'
 require_relative 'lib/obsidian'
 
 # Stores replacement text
@@ -20,9 +23,9 @@ class Replacement
   end
 end
 
-VAULT_PATH = '/Users/andy/Dropbox/Obsidian/Personal'.freeze
+VAULT_PATH = '/Users/andy/Dropbox/Obsidian/Personal'
 LOG_PATH_REGEX = %r{/\d\d\d\d-\d\d-\d\d .+.md}.freeze
-LOG_HISTORY_REGEX  = /```dataviewjs\nconst {Logs} = customJS\nLogs\.historyAllWithContext\(dv\)\n```/.freeze
+LOG_HISTORY_REGEX = /```dataviewjs\nconst {Logs} = customJS\nLogs\.historyAllWithContext\(dv\)\n```/.freeze
 LOG_SUMMARY_REGEX = /```dataviewjs\nconst {Logs} = customJS\nLogs.headlineByYear\(dv\)\n```/.freeze
 YEAR_SUMMARY_REGEX = /```dataviewjs\nconst {Logs} = customJS\nLogs\.headlineByMonth\(dv\)\n```/.freeze
 CUSTOM_JS_REGEX = /```dataviewjs\nconst {[a-zA-Z]*} = customJS[^`]+```/m.freeze
@@ -31,13 +34,13 @@ vault = Obsidian::Vault.new(VAULT_PATH)
 all_logs = vault.search { |n| n.path_like?(LOG_PATH_REGEX) }.map { |n| Obsidian::LogNote.new(n) }
 all_outlinks = vault.outlinks
 
-log_history_notes = vault.search { |n| n.find(LOG_HISTORY_REGEX) }
-log_summary_notes = vault.search { |n| n.find(LOG_SUMMARY_REGEX) }
+vault.search { |n| n.find(LOG_HISTORY_REGEX) }
+vault.search { |n| n.find(LOG_SUMMARY_REGEX) }
 yearly_summary_notes = vault.search { |n| n.find(YEAR_SUMMARY_REGEX) }
 
-cult = vault.search { |n| n.tag?('type/cultivation') }.map(&:path)
+vault.search { |n| n.tag?('type/cultivation') }.map(&:path)
 
-cust = vault.search { |n| n.find(CUSTOM_JS_REGEX) }.map(&:hits).flatten.sort.uniq.each {|h| puts "---> #{h}"}
+vault.search { |n| n.find(CUSTOM_JS_REGEX) }.map(&:hits).flatten.sort.uniq.each { |h| puts "---> #{h}" }
 
 daily_replacements = Replacement.new
 yearly_summary_replacements = Replacement.new
@@ -63,7 +66,7 @@ all_logs.each do |log|
   # Merge log if no inlinks
   if log.inlinks?(all_outlinks)
     puts 'Log has inlinks, keep separate and link from daily'
-    puts "--> #{log.inlinks(vault.notes)}"
+    # puts "--> #{log.inlinks(vault.notes.map(&:file_name))}"
     daily_replacements.add(log.daily_note_name, "[[#{log.file_name}]]")
   else
     puts 'Log has no inlinks, merge it into the daily'
@@ -71,5 +74,5 @@ all_logs.each do |log|
   end
 end
 
-puts daily_replacements.to_s
-# puts yearly_summary_replacements.to_s
+# puts daily_replacements.to_s
+puts yearly_summary_replacements.to_s

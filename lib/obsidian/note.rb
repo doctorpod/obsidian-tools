@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 module Obsidian
   LINK_REGEX = /\[\[([a-zA-Z0-9\-.()&| ]*)\]\]/.freeze
   PROPERTY_REGEX = /^([a-zA-Z0-9\-.]*)::?(.*)$/.freeze
   TAG_REGEX = %r{#([a-zA-Z0-9\-._/]*)}.freeze
 
+  # Represents a note within an Obsidiam vault
   class Note
     attr_reader :path, :hits
     attr_accessor :inlinks
@@ -26,6 +29,7 @@ module Obsidian
     end
 
     # @return Boolean, true if any other notes link in
+    # @param vault_outlinks Array[String] - list of file names
     def inlinks?(vault_outlinks)
       vault_outlinks.include?(file_name)
     end
@@ -37,7 +41,7 @@ module Obsidian
 
     # @return Hash of property name (key), property value (value)
     def properties
-      @properties ||= contents.scan(PROPERTY_REGEX).to_h.each { |_k, v| v.strip! }
+      @properties ||= contents.scan(PROPERTY_REGEX).to_h.each_value(&:strip!)
     end
 
     # @return Array of tag names excluding the hash sign

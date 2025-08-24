@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'delegate'
 require 'date'
 
@@ -26,10 +28,9 @@ module Obsidian
     end
 
     def date
-      return Date.parse(@note.properties['date']) if @note.properties.include?('date')
-
+      Date.parse(@note.properties['date']) if @note.properties.include?('date')
     rescue Date::Error
-      $stderr.puts "Log: #{@note.path} has unparsable date: #{@note.properties['date']}"
+      warn "Log: #{@note.path} has unparsable date: #{@note.properties['date']}"
       raise
     end
 

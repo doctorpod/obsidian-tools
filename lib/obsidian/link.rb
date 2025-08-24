@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Obsidian
   class Link
     LINK_TEXT_REGEX = /\[\[([^#|]+)(#[^|]+)?(\|.+)?\]\]/.freeze

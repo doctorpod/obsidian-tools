@@ -3,8 +3,8 @@
 date_str = ARGV[0]
 
 OBSIDIAN_ROOT = '/Users/andy/Dropbox/Obsidian/Personal/'
-JOURNAL_PATH = OBSIDIAN_ROOT + 'journal/'
-path = JOURNAL_PATH + date_str + '.md'
+JOURNAL_PATH = "#{OBSIDIAN_ROOT}journal/"
+path = "#{JOURNAL_PATH}#{date_str}.md"
 log_times = %w[09:00 10:00 11:00 12:00 13:00 14:00 15:00 16:00 17:00 18:00 19:00 20:00 21:00 22:00 23:00]
 
 content = File.read(path)
@@ -32,8 +32,8 @@ Logs.historyDayByContext(dv)
 written = []
 chunks.each_with_index do |line, i|
   log_time = log_times[i]
-  log_year = date_str[0,4]
-  log_path = "#{OBSIDIAN_ROOT}lib/#{log_year}/#{date_str} #{log_time.tr(':','.')}.00.md"
+  log_year = date_str[0, 4]
+  log_path = "#{OBSIDIAN_ROOT}lib/#{log_year}/#{date_str} #{log_time.tr(':', '.')}.00.md"
   log_contents = "---
 date: #{date_str}
 time: #{log_time}

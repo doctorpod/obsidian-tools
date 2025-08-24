@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'date_nav'
 
 RSpec.describe DateNav do
@@ -11,17 +13,17 @@ RSpec.describe DateNav do
     context 'with all date available' do
       let(:sorted_available_dates) do
         [
-          Date.new(1961,  1,  3),
-          Date.new(1961, 12,  3),
+          Date.new(1961, 1, 3),
+          Date.new(1961, 12, 3),
           Date.new(1961, 12, 27),
-          Date.new(1962,  1,  1)
+          Date.new(1962, 1, 1)
         ]
       end
 
       it 'finds direct hits on all dates' do
         expect(subject.prev_hits).to eq(
           [
-            [:year,  Date.new(1961,  1,  3)],
+            [:year,  Date.new(1961, 1, 3)],
             [:month, Date.new(1961, 12,  3)],
             [:prev,  Date.new(1962,  1,  1)]
           ]
@@ -32,8 +34,8 @@ RSpec.describe DateNav do
     context 'with prev date a week ago' do
       let(:sorted_available_dates) do
         [
-          Date.new(1961,  1,  3),
-          Date.new(1961, 12,  3),
+          Date.new(1961, 1, 3),
+          Date.new(1961, 12, 3),
           Date.new(1961, 12, 27)
         ]
       end

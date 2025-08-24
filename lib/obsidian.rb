@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'obsidian/vault'
 require_relative 'obsidian/note'
 require_relative 'obsidian/log_note'

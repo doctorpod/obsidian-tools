@@ -6,11 +6,9 @@ JOURNAL_PATH = '/Users/andy/Dropbox/Obsidian/Personal/journal'
 available_date_filenames = Dir.entries(JOURNAL_PATH).sort
 
 available_dates = available_date_filenames.map do |filename|
-  begin
-    Date.parse(filename)
-  rescue ArgumentError
-    nil
-  end
+  Date.parse(filename)
+rescue ArgumentError
+  nil
 end.compact
 
 reference_date = if ARGV[0]

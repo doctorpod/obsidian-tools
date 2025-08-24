@@ -24,7 +24,7 @@ end
 available_date_paths.each do |path|
   contents = File.read(path)
   cleaned_contents = contents.sub(UNWANTED_NAV, '')
-  lines = cleaned_contents.split("\n").map { |line| "#{line}\n"}
+  lines = cleaned_contents.split("\n").map { |line| "#{line}\n" }
 
   unless lines[0] =~ /^#/
     puts "#{path}: file does not start with a #, skipping"

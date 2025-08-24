@@ -26,7 +26,7 @@ class DateNav
       [:prev, prev_date],
       [:month, nearest(reference_date.prev_month, MONTH_SEARCH_RADIUS, prev_available_dates)],
       [:year, nearest(reference_date.prev_year, YEAR_SEARCH_RADIUS, prev_available_dates)]
-    ].reject { |segment| segment.last.nil? } .reverse
+    ].reject { |segment| segment.last.nil? }.reverse
   end
 
   def next_hits
