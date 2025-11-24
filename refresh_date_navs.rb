@@ -2,10 +2,15 @@
 
 require_relative 'date_nav'
 
-JOURNAL_PATH = '/Users/andy/Dropbox/Obsidian/Personal/journal'
+journal_path = ARGV[0]
+
+unless Dir.exist? journal_path
+  puts "Cant't find folder #{journal_path}"
+  exit 1
+end
 
 # List of paths
-available_date_paths = Dir.glob("#{JOURNAL_PATH}/????-??-??.md").sort
+available_date_paths = Dir.glob("#{journal_path}/????-??-??.md").sort
 
 # List of dates
 available_dates = available_date_paths.map do |path|
