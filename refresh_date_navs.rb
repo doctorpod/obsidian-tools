@@ -1,8 +1,9 @@
+#!/usr/bin/env ruby
 # frozen_string_literal: true
 
 require_relative 'date_nav'
 
-journal_path = ARGV[0]
+journal_path = ARGV[0] || Dir.pwd
 
 unless Dir.exist? journal_path
   puts "Cant't find folder #{journal_path}"
