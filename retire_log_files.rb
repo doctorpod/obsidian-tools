@@ -1,54 +1,70 @@
 # frozen_string_literal: true
 
+require 'date'
+
 # Stores replacement date and text for each path
 #
-# @data looks like:
-# {
-#   'Daily/2024-01-01.md' => [
-#     [(Date), '- whatever, [[a link]], blah'],
-#     [(Date), 'bish bosh bash, [[another link]], blah']
-#   ],
-#   'Yearly/2024.md' => [
-#     ... etc
-#   ]
-# }
 class Replacements
+  attr_reader :data
+
   def initialize
     @data = {}
   end
 
-  # @param path String - file name to add replacement for
-  # @param date String - date of the replacement, used for sorting, month etc
-  # @param replacement_text String - text to replace with
-  def add(path, date, replacement_text)
-    @data[path] ||= []
-    @data[path] << [Date.parse(date), replacement_text]
+  def add_daily(path, synopsis, remaining_content)
+    @data[path] ||= {}
+    @data[path][:daily] ||= []
+    @data[path][:daily] << {synopsis: synopsis, remaining_content: remaining_content}
   end
 
-  # FIXME: This is currently just joining all the replacement text together, 
-  # but we may want to have more specific formatting, e.g. separate by date
-  #
-  # @return String of replacement text for a given note name, with entries sorted by date
-  def replacement_text(path)
-    @data[path].sort_by { |(date, _text)| date }.map { |(_date, text)| text }.join("\n")
+  def add_summary(path, date_string, headline)
+    @data[path] ||= {}
+    @data[path][:summary] ||= []
+    @data[path][:summary] << {date: Date.parse(date_string), date_string: date_string, headline: headline}
   end
 
-  def log_history(path)
+  def replacement_daily(path)
+    data = @data[path][:daily]
+
+    data.map { |d| "#{d[:synopsis]}\n#{d[:remaining_content]}" } .join("\n")
   end
 
-  def log_summary(path)
-  end
+  def replacement_summary(path, level = 2)
+    data = @data[path][:summary]
+    tree = {}
 
-  def year_summary(path)
+    data.each do |entry|
+      year = entry[:date].year
+      month = entry[:date].strftime('%b')
+
+      tree[year] ||= {}
+      tree[year][month] ||= []
+      tree[year][month] << "- [[#{entry[:date_string]}|#{entry[:headline]}]]"
+    end
+
+    tree.map do |year, months|
+      month_strings = months.map do |month, entries|
+        "##{'#' * level} #{month}\n#{entries.join("\n")}"
+      end.join("\n")
+
+      "\n#{'#' * level} #{year}\n#{month_strings}"
+    end.join.lstrip
   end
 
   # For debugging
-  def to_s
-    @data.map { |path, date_and_text| "\n#{path}:\n#{replacement_text(path)}" }
+  def print
+    @data.each do |path, replacements|
+      puts "\n\nReplacements for #{path}:"
+      replacements.each do |type, _entries|
+        puts " -- #{type}:"
+        puts replacement_daily(path) if type == :daily
+        puts replacement_summary(path) if type == :summary
+      end
+    end
   end
 end
 
-replacements = {}
+the_replacements = Replacements.new
 
 # Deals with both frontmatter 'property: value' and inline 'Property:: value' formats
 #
@@ -118,10 +134,6 @@ log_files.each do |log_path|
     next
   end 
 
-  # puts "\nProcessing log: #{log_path}\n -- date: #{date_string}\n -- headline: #{headline}\n" \
-  #      " -- context: #{context}\n -- synopsis: #{synopsis}\n -- remain: #{remaining_content}\n" \
-  #      " -- links: #{outlinked_files.join("\n ------- ")}\n\n"
-
   outlinked_files.each do |file_name|
     linked_path = indexed_files[file_name]
 
@@ -133,53 +145,42 @@ log_files.each do |log_path|
     linked_content = File.read(linked_path)
     
     if linked_content =~ LOG_DAILY_REGEX
-      # puts "Found daily log for #{file_name}"
-
-      replacements[linked_path] ||= {}
-      replacements[linked_path][:daily] ||= []
-      replacements[linked_path][:daily] << synopsis + "\n" + remaining_content
+      the_replacements.add_daily(linked_path, synopsis, remaining_content)
     end
 
     if linked_content =~ LOG_HISTORY_REGEX
-      # puts "Found history log for #{file_name}"
-
-      replacements[linked_path] ||= {}
       # We're probably going to get rid of these in favour of the summary logs
-      replacements[linked_path][:history] ||= []
     end
 
-    if linked_content =~ LOG_SUMMARY_REGEX
-      # puts "Found summary log for #{file_name}"
-
+    if linked_content =~ LOG_SUMMARY_REGEX || linked_content =~ YEAR_SUMMARY_REGEX
       unless headline
         STDERR.puts "Warning: no headline found for log file '#{log_path}', skipping summary entry for #{file_name}"
         next
       end
 
-      replacements[linked_path] ||= {}
-      replacements[linked_path][:summary] ||= []
-      replacements[linked_path][:summary] << "- [[#{date_string}|#{headline}]]"
-    end
-
-    if linked_content =~ YEAR_SUMMARY_REGEX
-      # puts "Found yearly log for #{file_name}"
-
-      unless headline
-        STDERR.puts "Warning: no headline found for log file '#{log_path}', skipping yearly entry for #{file_name}"
-        next
-      end
-
-      replacements[linked_path] ||= {}
-      replacements[linked_path][:yearly] ||= []
-      replacements[linked_path][:yearly] << "- [[#{date_string}|#{headline}]]"
+      the_replacements.add_summary(linked_path, date_string, headline)
     end
   end
- 
-  # delete log file
 end
 
 # Substitute DataviewJS log summaries with the generated replacement text, 
 # e.g. for daily logs, history logs, etc.
+the_replacements.data.each do |path, replacements|
+  if File.exist?(path)
+    content = File.read(path)
 
-pp replacements
+    replacements.each do |type, _entries|
+      content.gsub!(LOG_DAILY_REGEX, the_replacements.replacement_daily(path)) if type == :daily
+      content.gsub!(LOG_SUMMARY_REGEX, the_replacements.replacement_summary(path, 2)) if type == :summary
+      content.gsub!(YEAR_SUMMARY_REGEX, the_replacements.replacement_summary(path, 1)) if type == :summary
+    end
 
+    File.write(path, content)
+    puts "\n\nUpdated content for #{path}\n------------\n#{content}"
+  else
+    STDERR.puts "Warning: file '#{path}' not found for replacement, skipping"
+  end
+end
+
+# Delete log files
+log_files.each { |path| File.delete(path) }
